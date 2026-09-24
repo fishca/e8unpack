@@ -1,0 +1,30 @@
+#include "SectionTypes.h"
+#include "src/core/MetadataTypes.h"
+
+namespace v8 {
+
+static QHash<QString, QString> buildSections()
+{
+    QHash<QString, QString> m;
+    auto add = [&m](const char* guid, const char* name) {
+        m.insert(normalizeGuid(QString::fromLatin1(guid)),
+                 QString::fromUtf8(name));
+    };
+
+    add(GUID_Section_Forms,           sec_Forms);
+    add(GUID_Section_Templates,       sec_Templates);
+    add(GUID_Section_Commands,        sec_Commands);
+    add(GUID_Section_TabularSections, sec_TabularSections);
+    //add(GUID_Section_Attributes,      sec_Attributes);
+    //add(GUID_Section_TabularSections, sec_TabularSections);
+
+    return m;
+}
+
+const QHash<QString, QString>& sectionTypes()
+{
+    static const QHash<QString, QString> types = buildSections();
+    return types;
+}
+
+} // namespace v8

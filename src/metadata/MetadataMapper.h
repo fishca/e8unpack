@@ -1,0 +1,40 @@
+#ifndef METADATAMAPPER_H
+#define METADATAMAPPER_H
+
+
+#include "MetadataMap.h"
+#include "src/core/V8Container.h"
+#include <QString>
+
+namespace v8 {
+
+/**
+ * Сопоставляет записи контейнера 1С с метаданными.
+ * На входе — распакованные данные (GUID + бинарные блоки),
+ * на выходе — структура, пригодная для раскладки по каталогам.
+ */
+class MetadataMapper {
+public:
+    explicit MetadataMapper(const MetadataMap &map);
+
+    struct MappedEntry {
+        QString typeName;      // "Catalogs", "Documents", ...
+        QString objectName;    // "Номенклатура", ...
+        QString objectGuid;    // исходный GUID
+        QString relativePath;  // путь относительно корня вывода
+        QByteArray data;       // данные записи
+    };
+
+    /// Преобразовать записи контейнера в список MappedEntry.
+    /// Для записей, не найденных в карте, используется fallback:
+    /// typeName = "Unknown", objectName = GUID.
+    QVector<MappedEntry> map(const QVector<V8Container::Entry> &entries) const;
+
+private:
+    const MetadataMap &m_map;
+};
+
+} // namespace v8
+
+
+#endif // METADATAMAPPER_H

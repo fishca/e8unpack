@@ -1,0 +1,39 @@
+{
+  "Catalogs": {
+    "cf4abea6-37b2-11d4-940f-008048da11f9": {
+      "type_guid": "cf4abea6-37b2-11d4-940f-008048da11f9",
+      "objects": {
+        "154c4235-35f5-42c3-a0d5-07b9ea861f14": {
+          "name": "Номенклатура",
+          "synonym": "Номенклатура"
+        },
+        "2a1b2c3d-4e5f-6789-abcd-ef0123456789": {
+          "name": "Валюты",
+          "synonym": "Валюты"
+        }
+      }
+    }
+  },
+  "Documents": {
+    "b64d9a2e-11f2-4a3b-8c9d-0e1f2a3b4c5d": {
+      "type_guid": "b64d9a2e-11f2-4a3b-8c9d-0e1f2a3b4c5d",
+      "objects": {
+        "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f": {
+          "name": "РеализацияТоваровУслуг",
+          "synonym": "Реализация товаров и услуг"
+        }
+      }
+    }
+  },
+  "CommonModules": {
+    "a1b2c3d4-e5f6-7890-abcd-ef1234567890": {
+      "type_guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "objects": {
+        "b2c3d4e5-f6a7-8901-bcde-f23456789012": {
+          "name": "ОбщегоНазначения",
+          "synonym": "Общего назначения"
+        }
+      }
+    }
+  }
+}
