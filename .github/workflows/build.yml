@@ -1,22 +1,22 @@
-name: Build Qt6 Cross-Platform
+name: Build & Release
 
 on:
   push:
     branches: [ main, master, develop ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, master, develop ]
   workflow_dispatch:
 
 env:
-  # Версия Qt для Linux (динамическая линковка)
   QT_VERSION: 6.7.2
-  # Имя вашего .pro-файла без расширения = имя бинарника
   APP_NAME: e8unpack
   PRO_FILE: e8unpack.pro
 
 jobs:
   # ============================================================
-  # LINUX (GCC, динамическая линковка Qt)
+  # LINUX
   # ============================================================
   build-linux:
     name: Linux GCC (dynamic)
@@ -34,7 +34,6 @@ jobs:
           version: ${{ env.QT_VERSION }}
           arch: linux_gcc_64
           cache: true
-          # modules: 'qtimageformats qtmultimedia'   # раскомментируйте нужные
 
       - name: Install Linux dependencies
         run: |
@@ -58,15 +57,29 @@ jobs:
           cd build
           make -j$(nproc)
 
-      - name: Upload artifact
+      - name: Package (tar.gz)
+        run: |
+          cd build
+          tar -czf ../${{ env.APP_NAME }}-${{ github.ref_name }}-linux-x86_64.tar.gz ${{ env.APP_NAME }}
+
+      - name: Upload artifact (Actions)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-linux-x86_64
-          path: build/${{ env.APP_NAME }}
+          path: ${{ env.APP_NAME }}-${{ github.ref_name }}-linux-x86_64.tar.gz
           if-no-files-found: error
 
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APP_NAME }}-${{ github.ref_name }}-linux-x86_64.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # ============================================================
-  # WINDOWS (MinGW, статическая сборка — один .exe без DLL)
+  # WINDOWS (static, один .exe без DLL)
   # ============================================================
   build-windows:
     name: Windows MinGW (static)
@@ -78,9 +91,6 @@ jobs:
         with:
           submodules: recursive
 
-      # ---------- Установка MSYS2 + MinGW + статический Qt6 ----------
-      # Помимо qt6-static явно ставим его статические зависимости,
-      # иначе линковка упадёт с "cannot find -lb2 / -lpcre2-16 / ...".
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -121,9 +131,24 @@ jobs:
           cd build
           mingw32-make -j$(nproc)
 
-      - name: Upload artifact
+      - name: Package (zip)
+        shell: msys2 {0}
+        run: |
+          cd build/release
+          7z a ../../${{ env.APP_NAME }}-${{ github.ref_name }}-windows-x86_64.zip ${{ env.APP_NAME }}.exe
+
+      - name: Upload artifact (Actions)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-windows-static
-          path: build/release/${{ env.APP_NAME }}.exe
+          name: ${{ env.APP_NAME }}-windows-x86_64
+          path: ${{ env.APP_NAME }}-${{ github.ref_name }}-windows-x86_64.zip
           if-no-files-found: error
+
+      - name: Upload to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APP_NAME }}-${{ github.ref_name }}-windows-x86_64.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
