@@ -1,0 +1,130 @@
+name: Build Qt6 Cross-Platform
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+env:
+  # Версия Qt для Linux (динамическая)
+  QT_VERSION: 6.7.2
+  BUILD_TYPE: Release
+  # Имя вашего исполняемого файла (без .exe)
+  APP_NAME: myapp
+
+jobs:
+  # ============================================================
+  # LINUX (GCC, динамическая линковка)
+  # ============================================================
+  build-linux:
+    name: Linux GCC (dynamic)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          arch: linux_gcc_64
+          cache: true
+          # modules: 'qtimageformats qtmultimedia'   # раскомментируйте нужные
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            libgl1-mesa-dev libglu1-mesa-dev \
+            libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
+            libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-shape0 libxcb-xinerama0 libxcb-xinput0 \
+            libxcb-xfixes0 libxcb-cursor0
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH="$Qt6_DIR"
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Test (optional)
+        working-directory: build
+        run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+        continue-on-error: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-linux-x86_64
+          path: build/${{ env.APP_NAME }}
+          if-no-files-found: error
+
+  # ============================================================
+  # WINDOWS (MinGW, статическая сборка — один .exe без DLL)
+  # ============================================================
+  build-windows:
+    name: Windows MinGW (static)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ---------- Установка MSYS2 с MinGW и статическим Qt6 ----------
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-qt6-static
+
+      # ---------- Кэш статического Qt ----------
+      # Кэшируем установленный qt6-static, чтобы не скачивать его каждый раз.
+      - name: Cache static Qt
+        id: cache-qt-static
+        uses: actions/cache@v4
+        with:
+          path: C:\msys64\mingw64\qt6-static
+          key: qt6-static-mingw64-${{ hashFiles('.github/workflows/build.yml') }}
+          restore-keys: |
+            qt6-static-mingw64-
+
+      # Если кэш промахнулся, Qt уже установлен шагом Setup MSYS2,
+      # но для явности можно переустановить (необязательно).
+
+      # ---------- Настройка окружения ----------
+      - name: Configure CMake
+        shell: msys2 {0}
+        run: |
+          # Указываем CMake искать статический Qt
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH=/mingw64/qt6-static
+
+      # ---------- Сборка ----------
+      - name: Build
+        shell: msys2 {0}
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      # ---------- Загрузка артефакта ----------
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-windows-static
+          path: build/${{ env.APP_NAME }}.exe
+          if-no-files-found: error
