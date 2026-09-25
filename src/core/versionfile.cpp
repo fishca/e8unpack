@@ -6,7 +6,7 @@ at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
 #include <sstream>
-#include "VersionFile.h"
+#include "versionfile.h"
 namespace v8unpack {
 
 VersionFile::VersionFile() : m_compatibility(COMPATIBILITY_DEFAULT)
