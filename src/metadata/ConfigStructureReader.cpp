@@ -24,10 +24,10 @@ namespace {
 /// Возвращает nullptr при ошибке.
 tree* loadTree(const fs::path& file, const QString& path)
 {
-    QFile f(QString::fromStdString(file.string()));
+    QFile f(QString::fromStdWString(file.wstring()));   // ✅
     if (!f.open(QIODevice::ReadOnly)) {
         qWarning() << "ConfigStructureReader: не удалось открыть"
-                   << QString::fromStdString(file.string());
+                   << QString::fromStdWString(file.wstring());
         return nullptr;
     }
     return parse_1Cstream(&f, path);
@@ -249,7 +249,7 @@ bool ConfigStructureReader::loadObjectGroups()
         return false;
     }
 
-    const fs::path structFile = m_configDir / m_configGuid.toStdString();
+    const fs::path structFile = m_configDir / m_configGuid.toStdWString();
 
     std::error_code ec;
     if (!fs::exists(structFile, ec)) {
@@ -280,7 +280,7 @@ QString ConfigStructureReader::resolveName(const QString& objectGuid) const
     if (objectGuid.isEmpty())
         return {};
 
-    const fs::path objFile = m_configDir / objectGuid.toStdString();
+    const fs::path objFile = m_configDir / objectGuid.toStdWString();
 
     std::error_code ec;
     if (!fs::exists(objFile, ec)) {
@@ -306,7 +306,7 @@ QVector<SectionInfo> ConfigStructureReader::resolveSections(const QString &objGu
     if (objGuid.isEmpty())
         return result;
 
-    const fs::path objFile = m_configDir / objGuid.toStdString();
+    const fs::path objFile = m_configDir / objGuid.toStdWString();
 
     std::error_code ec;
     if (!fs::exists(objFile, ec))

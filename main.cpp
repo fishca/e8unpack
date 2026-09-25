@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 
+#include <QStringConverter>
 #include <QTextStream>
 #include "src/cli/CommandLineParser.h"
 #include "src/core/V8Container.h"
@@ -57,6 +58,9 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     QTextStream err(stderr);
     QTextStream out(stdout);
+
+    err.setEncoding(QStringConverter::Utf8);
+    out.setEncoding(QStringConverter::Utf8);
 
     v8::CommandLineOptions opts = v8::CommandLineParser::parse(app.arguments());
 

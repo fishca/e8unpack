@@ -1,0 +1,261 @@
+# =========================================================
+#  .gitignore для C++ / Qt6 проектов
+# =========================================================
+
+# ------------------------- Qt6 ---------------------------
+# Пользовательские настройки Qt Creator
+*.pro.user
+*.pro.user.*
+*.qmlproject.user
+*.qmlproject.user.*
+*.creator.user
+*.creator.user.*
+*.files
+*.includes
+*.config
+
+# Кэш и служебные файлы qmake
+.qmake.stash
+.qmake.cache
+*.qmake.stash
+*.qmake.cache
+
+# Генерируемые moc/uic/rcc файлы
+moc_*.cpp
+moc_*.h
+moc_predefs.h
+ui_*.h
+qrc_*.cpp
+*.moc
+*_automoc.cpp
+qrc_*.qrc.depends
+
+# Autogen (CMake + Qt)
+*_autogen/
+AUTOGEN/
+autogen/
+CMakeFiles/*_autogen.dir/
+build-*/*_autogen/
+
+# Qt Quick / QML кэш
+*.qmlc
+*.jsc
+qmlcache/
+
+# Сгенерированные переводы (если .ts в репозитории, .qm — нет)
+*.qm
+
+# qt.conf и прочие генерируемые конфиги
+qt.conf
+
+# ------------------------ CMake --------------------------
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CMakeUserPresets.json
+cmake_install.cmake
+cmake_uninstall.cmake
+CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+install_manifest.txt
+compile_commands.json
+Testing/
+_deps/
+*.cmake.stamp
+*.cmake.stamp.stamp
+*.cmake.in.stamp
+
+# ----------------------- Сборка --------------------------
+# Каталоги сборки (типовые)
+build/
+build-*/
+build_*/
+out/
+bin/
+obj/
+Debug/
+Release/
+debug/
+release/
+RelWithDebInfo/
+MinSizeRel/
+x64/
+x86/
+cmake-build-*/
+
+# Объектные файлы
+*.o
+*.obj
+*.lo
+*.slo
+*.ko
+*.pch
+*.gch
+*.gch.*
+*.d
+*.dwo
+
+# Библиотеки
+*.so
+*.so.*
+*.dylib
+*.dll
+*.a
+*.lib
+*.la
+*.lai
+*.def
+*.exp
+
+# Исполняемые файлы
+*.exe
+*.out
+*.app
+*.run
+*.bin
+
+# Отладочные символы
+*.pdb
+*.ilk
+*.idb
+*.map
+*.sym
+
+# -------------------- IDE / Редакторы --------------------
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!.vscode/c_cpp_properties.json
+.history/
+
+# CLion / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# clangd / clang-tidy / clang-format
+.clangd/
+.clang-format.cache/
+.clang-tidy.cache/
+.cache/
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+.[nvim]/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Code::Blocks / CodeLite / KDevelop
+*.cbp
+*.layout
+*.depend
+*.codelite
+*.kdev4
+*.kdev4.*
+
+# --------------------------- OS --------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ------------------------ Прочее -------------------------
+*.log
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.tmp
+*.temp
+*.pid
+*.seed
+*.cache
+*.stackdump
+core
+core.*
+vgcore.*
+valgrind.log*
+gcov/
+*.gcda
+*.gcno
+*.gcov
+coverage/
+tags
+TAGS
+cscope.*
+.ctags
+
+# Локальные секреты / окружение
+.env
+.env.*
+!.env.example
+*.local
+
+# Артефакты упаковки
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.7z
+*.rar
+*.deb
+*.rpm
+*.dmg
+*.msi
+*.AppImage
+*.snap
+*.flatpak
+*.exe
+*.pkg
+
+# Документация, сгенерированная Doxygen
+docs/html/
+docs/latex/
+docs/xml/
+html/
+latex/

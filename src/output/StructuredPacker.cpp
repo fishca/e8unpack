@@ -6,9 +6,9 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QDebug>
+#include <QRegularExpression>
+#include <QSet>
 #include <system_error>
-#include <QRegularExpression>   // ← добавить
-#include <QSet>                 // ← на всякий случай (QSet используется в knownFolders)
 
 namespace v8 {
 namespace fs = std::filesystem;
@@ -22,8 +22,6 @@ StructuredPacker::StructuredPacker(const QString& inputDir,
     , m_noDeflate(noDeflate)
 {}
 
-// Собираем множество «человеческих» имён типов и секций, чтобы не спутать их
-// с реальными GUID-файлами.
 static const QSet<QString>& knownFolders()
 {
     static QSet<QString> s;
@@ -31,10 +29,8 @@ static const QSet<QString>& knownFolders()
 
     for (auto it = metadataTypes().begin(); it != metadataTypes().end(); ++it) {
         const QString& path = it.value();
-        // Могут быть составные пути "Общие/Языки" — берём только последний сегмент.
         const int slash = path.lastIndexOf(QLatin1Char('/'));
         s.insert(slash >= 0 ? path.mid(slash + 1) : path);
-        // И верхний уровень тоже
         if (slash > 0) s.insert(path.left(slash));
     }
     for (auto it = sectionTypes().begin(); it != sectionTypes().end(); ++it)
@@ -44,7 +40,6 @@ static const QSet<QString>& knownFolders()
     return s;
 }
 
-// Проверяем, является ли имя GUID-ом (с учётом возможного суффикса .N)
 static bool isGuidLike(const QString& name)
 {
     static const QRegularExpression re(
@@ -55,11 +50,11 @@ static bool isGuidLike(const QString& name)
 bool StructuredPacker::flattenToTemp()
 {
     std::error_code ec;
-    fs::remove_all(m_tempDir.toStdString(), ec);
-    fs::create_directories(m_tempDir.toStdString(), ec);
+    fs::remove_all(m_tempDir.toStdWString(), ec);          // ✅
+    fs::create_directories(m_tempDir.toStdWString(), ec);  // ✅
 
-    const fs::path srcRoot(m_inputDir.toStdString());
-    const fs::path tmpRoot(m_tempDir.toStdString());
+    const fs::path srcRoot(m_inputDir.toStdWString());     // ✅
+    const fs::path tmpRoot(m_tempDir.toStdWString());      // ✅
 
     int copied = 0;
 
@@ -75,31 +70,31 @@ bool StructuredPacker::flattenToTemp()
 
         const fs::path& src = it->path();
 
-        // Пропускаем наш временный каталог
         auto rel = fs::relative(src, srcRoot, ec);
         if (ec) continue;
-        const QString relStr = QString::fromStdString(rel.generic_string());
+        const QString relStr = QString::fromStdWString(    // ✅
+            rel.generic_wstring());
         if (relStr.startsWith(QLatin1String(".tmp_pack")))
             continue;
 
-        const QString fileName = QString::fromUtf8(
-            src.filename().string().c_str());
+        const QString fileName = QString::fromStdWString(  // ✅
+            src.filename().wstring());
 
         const bool isService = (fileName == QStringLiteral("root")
-                             || fileName == QStringLiteral("version")
-                             || fileName == QStringLiteral("versions"));
+                                || fileName == QStringLiteral("version")
+                                || fileName == QStringLiteral("versions"));
 
         if (!isService && !isGuidLike(fileName))
-            continue;   // не наш файл — пропускаем
+            continue;
 
-        fs::path dst = tmpRoot / fileName.toStdString();
+        fs::path dst = tmpRoot / fileName.toStdWString();  // ✅
 
         if (fs::exists(dst, ec)) {
             int n = 1;
             fs::path alt;
             do {
                 alt = dst;
-                alt += ("." + std::to_string(n++));
+                alt += (L"." + std::to_wstring(n++));      // ✅
             } while (fs::exists(alt, ec));
             dst = alt;
         }
@@ -109,36 +104,36 @@ bool StructuredPacker::flattenToTemp()
             ++copied;
             if (isService) {
                 qDebug() << "StructuredPacker: служебный файл найден:"
-                         << QString::fromStdString(rel.generic_string())
+                         << QString::fromStdWString(rel.generic_wstring())
                          << "->" << fileName;
             }
         } else {
             qWarning() << "Не удалось скопировать"
-                       << QString::fromStdString(src.string())
-                       << "->" << QString::fromStdString(dst.string())
+                       << QString::fromStdWString(src.wstring())
+                       << "->" << QString::fromStdWString(dst.wstring())
                        << ":" << QString::fromStdString(ec.message());
         }
     }
 
     qDebug() << "StructuredPacker: скопировано файлов:" << copied;
 
-    // Диагностика: что в итоге лежит в .tmp_pack
     {
         QStringList names;
         for (const auto& e : fs::directory_iterator(tmpRoot, ec))
-            names << QString::fromStdString(e.path().filename().string());
+            names << QString::fromStdWString(             // ✅
+                e.path().filename().wstring());
         names.sort();
         qDebug() << "StructuredPacker: содержимое .tmp_pack:"
                  << names.join(QStringLiteral(", "));
     }
 
-    const bool hasRoot = fs::exists(tmpRoot / "root", ec);
+    const bool hasRoot = fs::exists(tmpRoot / L"root", ec);      // ✅
     if (!hasRoot) {
         qWarning() << "StructuredPacker: в .tmp_pack нет файла root.";
         return false;
     }
 
-    const bool hasVersion = fs::exists(tmpRoot / "version", ec);
+    const bool hasVersion = fs::exists(tmpRoot / L"version", ec); // ✅
     if (!hasVersion) {
         qWarning() << "StructuredPacker: в .tmp_pack нет файла version.";
     }
@@ -146,13 +141,10 @@ bool StructuredPacker::flattenToTemp()
     return true;
 }
 
-
-
-
 void StructuredPacker::cleanupTemp()
 {
     std::error_code ec;
-    fs::remove_all(m_tempDir.toStdString(), ec);
+    fs::remove_all(m_tempDir.toStdWString(), ec);   // ✅
 }
 
 bool StructuredPacker::run()
@@ -167,7 +159,6 @@ bool StructuredPacker::run()
         return false;
     }
 
-    // Вызываем BuildCfFile из v8unpack
     int ret = v8unpack::BuildCfFile(
         m_tempDir.toStdString(),
         m_outputFile.toStdString(),
