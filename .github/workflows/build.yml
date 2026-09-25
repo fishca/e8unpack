@@ -92,6 +92,7 @@ jobs:
           submodules: recursive
 
       # Устанавливаем MSYS2, MinGW, статический Qt6 и его статические зависимости.
+      # Пакет "zip" — из базовой системы MSYS2 (не mingw-w64-*).
       # Без явной установки pcre2/libb2/... линковка падает с "cannot find -l...".
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -101,7 +102,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
-            mingw-w64-x86_64-zip
+            zip
             mingw-w64-x86_64-qt6-static
             mingw-w64-x86_64-pcre2
             mingw-w64-x86_64-libb2
