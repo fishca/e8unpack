@@ -1,6 +1,10 @@
 #ifndef NODETYPES_H
 #define NODETYPES_H
 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 // Типы узлов дерева (из оригинального NodeTypes.h)
 enum node_type {
     nd_empty = 0,       // пустое значение
