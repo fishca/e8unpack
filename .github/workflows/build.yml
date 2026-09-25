@@ -16,7 +16,7 @@ env:
 
 jobs:
   # ============================================================
-  # LINUX
+  # LINUX (GCC, динамическая линковка Qt)
   # ============================================================
   build-linux:
     name: Linux GCC (dynamic)
@@ -79,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ============================================================
-  # WINDOWS (static, один .exe без DLL)
+  # WINDOWS (MinGW, статическая сборка — один .exe без DLL)
   # ============================================================
   build-windows:
     name: Windows MinGW (static)
@@ -91,6 +91,8 @@ jobs:
         with:
           submodules: recursive
 
+      # Устанавливаем MSYS2, MinGW, статический Qt6 и его статические зависимости.
+      # Без явной установки pcre2/libb2/... линковка падает с "cannot find -l...".
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -99,6 +101,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
+            mingw-w64-x86_64-zip
             mingw-w64-x86_64-qt6-static
             mingw-w64-x86_64-pcre2
             mingw-w64-x86_64-libb2
@@ -135,7 +138,7 @@ jobs:
         shell: msys2 {0}
         run: |
           cd build/release
-          7z a ../../${{ env.APP_NAME }}-${{ github.ref_name }}-windows-x86_64.zip ${{ env.APP_NAME }}.exe
+          zip ../../${{ env.APP_NAME }}-${{ github.ref_name }}-windows-x86_64.zip ${{ env.APP_NAME }}.exe
 
       - name: Upload artifact (Actions)
         uses: actions/upload-artifact@v4
