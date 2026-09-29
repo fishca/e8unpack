@@ -2,6 +2,7 @@ name: Build & Release
 
 permissions:
   contents: write
+
 on:
   push:
     branches: [ main, master, develop ]
@@ -23,7 +24,6 @@ jobs:
   build-linux:
     name: Linux GCC (dynamic)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,55 +81,54 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ============================================================
-  # WINDOWS (MinGW, статическая сборка — один .exe без DLL)
+  # WINDOWS (UCRT64, статическая сборка — один .exe без DLL)
   # ============================================================
   build-windows:
-    name: Windows MinGW (static)
+    name: Windows UCRT64 (static)
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # Устанавливаем MSYS2, MinGW, статический Qt6 и его статические зависимости.
+      # Устанавливаем MSYS2, UCRT64, статический Qt6 и его статические зависимости.
       # Пакет "zip" — из базовой системы MSYS2 (не mingw-w64-*).
       # Без явной установки pcre2/libb2/... линковка падает с "cannot find -l...".
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: true
           install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-make
             zip
-            mingw-w64-x86_64-qt6-static
-            mingw-w64-x86_64-pcre2
-            mingw-w64-x86_64-libb2
-            mingw-w64-x86_64-libtiff
-            mingw-w64-x86_64-libjpeg-turbo
-            mingw-w64-x86_64-libwebp
-            mingw-w64-x86_64-libpng
-            mingw-w64-x86_64-zlib
-            mingw-w64-x86_64-brotli
-            mingw-w64-x86_64-freetype
-            mingw-w64-x86_64-harfbuzz
-            mingw-w64-x86_64-glib2
-            mingw-w64-x86_64-graphite2
-            mingw-w64-x86_64-lcms2
-            mingw-w64-x86_64-libmng
-            mingw-w64-x86_64-lerc
-            mingw-w64-x86_64-jbigkit
-            mingw-w64-x86_64-libdeflate
+            mingw-w64-ucrt-x86_64-qt6-static
+            mingw-w64-ucrt-x86_64-pcre2
+            mingw-w64-ucrt-x86_64-libb2
+            mingw-w64-ucrt-x86_64-libtiff
+            mingw-w64-ucrt-x86_64-libjpeg-turbo
+            mingw-w64-ucrt-x86_64-libwebp
+            mingw-w64-ucrt-x86_64-libpng
+            mingw-w64-ucrt-x86_64-zlib
+            mingw-w64-ucrt-x86_64-brotli
+            mingw-w64-ucrt-x86_64-freetype
+            mingw-w64-ucrt-x86_64-harfbuzz
+            mingw-w64-ucrt-x86_64-glib2
+            mingw-w64-ucrt-x86_64-graphite2
+            mingw-w64-ucrt-x86_64-lcms2
+            mingw-w64-ucrt-x86_64-libmng
+            mingw-w64-ucrt-x86_64-lerc
+            mingw-w64-ucrt-x86_64-jbigkit
+            mingw-w64-ucrt-x86_64-libdeflate
 
       - name: Configure (qmake, static)
         shell: msys2 {0}
         run: |
           mkdir -p build
           cd build
-          /mingw64/qt6-static/bin/qmake.exe ../${{ env.PRO_FILE }} CONFIG+=release
+          /ucrt64/qt6-static/bin/qmake.exe ../${{ env.PRO_FILE }} CONFIG+=release
 
       - name: Build
         shell: msys2 {0}
