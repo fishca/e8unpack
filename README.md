@@ -4,7 +4,7 @@
 
 **Кроссплатформенная утилита для распаковки и сборки контейнеров 1С:Предприятие**
 
-[![Сборка и релиз](https://github.com/e8tools/v8unpack/actions/workflows/build.yml/badge.svg)](https://github.com/e8tools/v8unpack/actions/workflows/build.yml)
+[![Сборка и релиз](https://github.com/fishca/e8unpack/actions/workflows/build.yml/badge.svg)](https://github.com/fishca/e8unpack/actions/workflows/build.yml)
 [![Лицензия: MPL-2.0](https://img.shields.io/badge/Лицензия-MPL%202.0-blue.svg)](https://opensource.org/licenses/MPL-2.0)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)](https://en.cppreference.com/w/cpp/17)
 [![Qt 6](https://img.shields.io/badge/Qt-6.7-41CD52?logo=qt)](https://www.qt.io/)
