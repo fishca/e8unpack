@@ -18,6 +18,8 @@
 #include "src/output/StructuredUnpacker.h"
 #include "src/output/StructuredPacker.h"
 
+#include "src/cli/ConsoleOutput.h"
+#include <atomic>
 
 #include <clocale>
 #include <locale>
@@ -33,10 +35,17 @@
 #  endif
 #endif
 
+static std::atomic_bool g_verbose{false};
+
 static void consoleMessageHandler(QtMsgType type,
                                   const QMessageLogContext&,
                                   const QString& msg)
 {
+
+    // Отфильтровываем отладочные сообщения, если verbose не включён
+    if (type == QtDebugMsg && !g_verbose.load(std::memory_order_relaxed))
+        return;
+
     const char* prefix = "";
     switch (type) {
         case QtDebugMsg:    prefix = "[D] "; break;
@@ -45,11 +54,12 @@ static void consoleMessageHandler(QtMsgType type,
         case QtCriticalMsg: prefix = "[C] "; break;
         case QtFatalMsg:    prefix = "[F] "; break;
     }
-    QTextStream(stderr) << prefix << msg << '\n';
+    v8::writeStderr(QString::fromLatin1(prefix) + msg + QLatin1Char('\n'));
 }
 
 int main(int argc, char *argv[])
 {
+    /*
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
@@ -119,5 +129,60 @@ int main(int argc, char *argv[])
     out << "Готово. Перемещено записей: " << unpacker.renamedCount() << "\n";
         out.flush();
     return 0;
+
+    */
+    qInstallMessageHandler(consoleMessageHandler);
+        std::setlocale(LC_ALL, "");
+        QCoreApplication app(argc, argv);
+
+        v8::CommandLineOptions opts = v8::CommandLineParser::parse(app.arguments());
+
+        // Включаем диагностику сразу после разбора, чтобы все последующие
+        // qDebug() из модулей были видны (или скрыты) корректно.
+        g_verbose.store(opts.verbose, std::memory_order_relaxed);
+
+        if (opts.inputFile.isEmpty()) {
+            v8::CommandLineParser::printUsage();
+            return 1;
+        }
+        if (opts.outputDir.isEmpty()) {
+            v8::writeStderr(QStringLiteral("Ошибка: не указан каталог вывода.\n"));
+            return 2;
+        }
+
+        if (opts.buildMode) {
+            v8::writeStdout(QStringLiteral("Сборка контейнера: %1 -> %2\n")
+                                .arg(opts.outputDir, opts.inputFile));
+
+            v8::StructuredPacker packer(opts.outputDir, opts.inputFile, opts.noDeflate);
+            if (!packer.run()) {
+                v8::writeStderr(QStringLiteral("Ошибка сборки.\n"));
+                return 5;
+            }
+            v8::writeStdout(QStringLiteral("Готово: %1\n").arg(opts.inputFile));
+            return 0;
+        }
+
+        v8::MetadataMap map;
+        bool mapLoaded = false;
+        if (opts.useMetadata && !opts.metadataMapFile.isEmpty()) {
+            mapLoaded = map.loadFromJson(opts.metadataMapFile);
+            if (!mapLoaded) {
+                v8::writeStderr(QStringLiteral(
+                    "Предупреждение: карта метаданных не загружена. "
+                    "Имена объектов будут по GUID.\n"));
+            }
+        }
+
+        v8::StructuredUnpacker unpacker(opts.inputFile, opts.outputDir,
+                                        mapLoaded ? &map : nullptr);
+        if (!unpacker.run()) {
+            v8::writeStderr(QStringLiteral("Ошибка распаковки.\n"));
+            return 3;
+        }
+        v8::writeStdout(QStringLiteral("Готово. Перемещено записей: %1\n")
+                            .arg(unpacker.renamedCount()));
+        return 0;
+
 
 }

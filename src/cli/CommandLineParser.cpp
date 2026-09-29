@@ -7,6 +7,7 @@
 #include <QStringConverter>   // Qt6: UTF-8 для QTextStream
 #include <QDebug>
 #include <cstdlib>
+#include "ConsoleOutput.h"
 
 #ifdef Q_OS_WIN
 #  include <windows.h>        // SetConsoleOutputCP
@@ -31,12 +32,14 @@ CommandLineOptions CommandLineParser::parse(const QStringList &args) {
             }
         } else if (arg == "-L" || arg == "--list") {
             opts.listOnly = true;
+        } else if (arg == "-v" || arg == "--verbose") {
+            opts.verbose = true;
         } else if (arg == "-h" || arg == "--help") {
             printUsage();
             std::exit(0);
         } else if (arg == "-B" || arg == "--build") {
             if (i + 1 >= args.size()) {
-                qWarning() << "Ошибка: -B требует аргумент <dir> <output.cf>";
+                v8::writeStderr(QStringLiteral("Ошибка: -B требует аргумент <dir> <output.cf>\n"));
                 std::exit(2);
             }
             opts.outputDir = args[++i];  // у нас уже занят под dir
@@ -51,25 +54,22 @@ CommandLineOptions CommandLineParser::parse(const QStringList &args) {
     return opts;
 }
 
-void CommandLineParser::printUsage() {
-#ifdef Q_OS_WIN
-    // Переключаем кодовую страницу консоли в UTF-8 (CP65001)
-    SetConsoleOutputCP(CP_UTF8);
-#endif
-    QTextStream out(stdout);
-    out.setEncoding(QStringConverter::Utf8);   // ← ключевая строка для Qt6
-    out << "v8unpack-metadata — распаковка контейнеров 1С с раскладкой по метаданным\n"
-        << "Использование:\n"
-        << "  e8unpack -U <input.cf> <output_dir> [-M metadata_map.json]\n"
-        << "  e8unpack -L <input.cf>                  (только список)\n"
-        << "Параметры:\n"
-        << "  -U, --unpack <file> <dir>   Распаковать контейнер в каталог\n"
-        << "  -M, --metadata-map <file>   JSON-карта метаданных (из v8_reader)\n"
-        << "  -L, --list                  Вывести список элементов без записи\n"
-        << "  -h, --help                  Показать эту справку\n"
-        << "  -B, --build <dir> <output.cf>  Собрать контейнер из каталога\n"
-        << "  --no-deflate                   Не сжимать данные при сборке\n";
-    out.flush();
+void CommandLineParser::printUsage()
+{
+    v8::writeStdout(QStringLiteral(
+        "v8unpack-metadata — распаковка контейнеров 1С с раскладкой по метаданным\n"
+        "Использование:\n"
+        "  e8unpack -U <input.cf> <output_dir> [-M metadata_map.json]\n"
+        "  e8unpack -L <input.cf>                  (только список)\n"
+        "Параметры:\n"
+        "  -U, --unpack <file> <dir>      Распаковать контейнер в каталог\n"
+        "  -M, --metadata-map <file>      JSON-карта метаданных (из v8_reader)\n"
+        "  -L, --list                     Вывести список элементов без записи\n"
+        "  -h, --help                     Показать эту справку\n"
+        "  -B, --build <dir> <output.cf>  Собрать контейнер из каталога\n"
+        "  -v, --verbose                  Подробный вывод (диагностика)\n"
+        "  --no-deflate                   Не сжимать данные при сборке\n"));
+
 }
 
 } // namespace v8

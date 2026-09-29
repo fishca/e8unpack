@@ -40,6 +40,7 @@ SOURCES += \
 
 # (Опционально) Добавляем заголовочные файлы для отображения в IDE
 HEADERS += \
+    src/cli/ConsoleOutput.h \
     src/core/MetadataTypes.h \
     src/core/V8File.h \
     src/core/versionfile.h \

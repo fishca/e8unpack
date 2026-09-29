@@ -14,10 +14,11 @@ struct CommandLineOptions {
     QString outputDir;        // каталог для распаковки
     QString metadataMapFile;  // JSON-карта метаданных (опционально)
     bool    useMetadata = false;
-    bool    listOnly = false;
-    bool    parseMode = false;
-    bool    buildMode = false;   // <-- новый
-    bool    noDeflate = false;   // <-- новый (--no-deflate)
+    bool    listOnly    = false;
+    bool    parseMode   = false;
+    bool    buildMode   = false;   // <-- новый
+    bool    noDeflate   = false;   // <-- новый (--no-deflate)
+    bool    verbose     = false;   // <-- добавить
 };
 
 class CommandLineParser {
