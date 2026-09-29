@@ -98,27 +98,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-
-
-    /*
-    // ── Этап 1: распаковка через v8unpack ──────────────────────────────
-    {
-        std::vector<std::string> filter;
-        int ret = v8unpack::Parse(
-            opts.inputFile.toStdString(),
-            opts.outputDir.toStdString(),
-            filter);
-
-        if (ret != v8unpack::V8UNPACK_OK) {
-            err << "Ошибка распаковки, код: " << ret << "\n";
-            return 3;
-        }
-    }
-
-    out << "Распаковка завершена: " << opts.outputDir << "\n";
-
-    */
-
     // ── Загрузка карты метаданных ────────────────────────────────
         v8::MetadataMap map;
         bool mapLoaded = false;
@@ -128,42 +107,13 @@ int main(int argc, char *argv[])
                 err << "Предупреждение: карта метаданных не загружена. "
                     << "Имена объектов будут по GUID.\n";
         }
-    // ── Распаковка с раскладкой по метаданным ────────────────────
-    v8::StructuredUnpacker unpacker(
-        opts.inputFile,
-        opts.outputDir,
-        mapLoaded ? &map : nullptr);
 
+    // ── Распаковка с раскладкой по метаданным ────────────────────
+    v8::StructuredUnpacker unpacker(opts.inputFile, opts.outputDir, mapLoaded ? &map : nullptr);
     if (!unpacker.run()) {
         err << "Ошибка распаковки.\n";
         return 3;
     }
-
-
-
-
-    /*
-    // ── Этап 2: раскладка по метаданным (если указана карта) ──────────
-    if (opts.useMetadata && !opts.metadataMapFile.isEmpty()) {
-        v8::MetadataMap map;
-        if (!map.loadFromJson(opts.metadataMapFile)) {
-            err << "Предупреждение: не удалось загрузить карту метаданных. "
-                << "Структура остаётся в виде GUID.\n";
-            return 0;
-        }
-
-        v8::MetadataLayoutBuilder builder(map, opts.outputDir);
-        if (!builder.reorganize()) {
-            err << "Ошибка при раскладке по метаданным.\n";
-            return 4;
-        }
-
-        out << "Раскладка по метаданным: переименовано "
-            << builder.renamedCount() << " записей.\n";
-    } else {
-        out << "Карта метаданных не указана — структура осталась по GUID.\n";
-    }
-    */
 
 
     out << "Готово. Перемещено записей: " << unpacker.renamedCount() << "\n";
